@@ -2,17 +2,18 @@ import React from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 import { useSpeechSynthesis } from 'react-speech-kit';
-
+import {useEffect} from "react";
 import "./styles.css";
-const {speak} = useSpeechSynthesis;
 
 
-class Video extends React.Component {
+
+const Video = () =>{
     
-    videoRef = React.createRef();
-    canvasRef = React.createRef();
+  const {speak} = useSpeechSynthesis();
+    const videoRef = React.createRef();
+    const canvasRef = React.createRef();
     
-    componentDidMount() {
+    useEffect(() => {
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           const webCamPromise = navigator.mediaDevices
@@ -24,10 +25,10 @@ class Video extends React.Component {
             })
             .then(stream => {
               window.stream = stream;
-              this.videoRef.current.srcObject = stream;
+              videoRef.current.srcObject = stream;
               return new Promise((resolve, reject) => {
-                speak({text : "Welcome to the detection system"});
-                this.videoRef.current.onloadedmetadata = () => {
+                // speak({text : "Welcome to the detection system"});
+                videoRef.current.onloadedmetadata = () => {
                   resolve();
                 };
               });
@@ -35,23 +36,23 @@ class Video extends React.Component {
           const modelPromise = cocoSsd.load();
           Promise.all([modelPromise, webCamPromise])
             .then(values => {
-              this.detectFrame(this.videoRef.current, values[0]);
+              detectFrame(videoRef.current, values[0]);
             })
             .catch(error => {
               console.error(error);
             });
         }
-      }
+      }, []);
     
 
-    detectFrame = (video, model) => {
+    const detectFrame = (video, model) => {
         model.detect(video).then(predictions => {
 
             setTimeout(() => {
-                this.renderPredictions(predictions);
+                renderPredictions(predictions);
 
             requestAnimationFrame(() => {
-                this.detectFrame(video, model);
+                detectFrame(video, model);
             });
         },3000);
     });
@@ -64,8 +65,8 @@ class Video extends React.Component {
     
     
     
-    renderPredictions = predictions => {
-        const ctx = this.canvasRef.current.getContext("2d");
+   const renderPredictions = predictions => {
+        const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         // Font options.
         const font = "16px sans-serif";
@@ -101,7 +102,7 @@ class Video extends React.Component {
         
     };
 
-    render(){
+   
         return (
             <div>
             <video
@@ -109,20 +110,20 @@ class Video extends React.Component {
               autoPlay
               playsInline
               muted
-              ref={this.videoRef}
+              ref={videoRef}
               width="600"
               height="500"
               
             />
             <canvas
               className="size"
-              ref={this.canvasRef}
+              ref={canvasRef}
               width="600"
               height="500"
             />
           </div>
         );
-    }
+    
     
 }
 
