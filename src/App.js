@@ -1,67 +1,30 @@
-import './App.css';
-import Video from './Components/video';
-import { useSpeechSynthesis } from 'react-speech-kit';
+import React, { Component } from 'react';
 
-import {useEffect, useState} from 'react';
-import SpeechRecognition, {
-  useSpeechRecognition
-} from "react-speech-recognition";
+import Webcam from 'react-webcam';
 
+export default class FaceEmotion extends Component{
 
-function App() {
-  const [video, setVideo] = useState(0);
-
-  const [value, setValue] = useState('');
-  const { speak } = useSpeechSynthesis();
-
-  SpeechRecognition.startListening({ continuous: true , language:'en-IN' });
-  
-  const commands = [
-    {
-      command: ["Start", "Start the process"],
-      callback: () => {
-        speak({text : "Starting the process"});
-        setVideo(1);
-        SpeechRecognition.startListening({ continuous: true , language:'en-IN' });
-      }
-    },
-    {
-      command: ["Stop", "Stop the process"],
-      callback: () => {
-        speak({text : "Stopping the process"});
-        setVideo(0);
-        SpeechRecognition.startListening({ continuous: true , language:'en-IN' });
-      }
+    constructor(props){
+        super(props);
+        this.state = { screenshot: null }
+        // this can be moved directly to the onClick event
+        // this.screenshot = this.screenshot.bind(this);
     }
-  ];
+    // this is the area I'm having issues with. Thanks!
+    screenshot() {
+        // access the webcam trough this.refs
+        var screenshot = this.refs.webcam.getScreenshot();
+        this.setState({screenshot: screenshot});
+      }
 
-  const { transcript, resetTranscript , listening } = useSpeechRecognition({ commands });
-  
+    render(){
 
-  // if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
-  //   return null;
-  // }
-
-
-  return (
-    <div className="App">
-      
-      <button onClick={()=>{
-        {video === 0 ? setVideo(1) : setVideo(0)}
-      }}>
-        {video === 1 ? "Stop Detection" :  "Start Detection"}
-      </button>
-      {video === 1 ? <Video /> : ""}
-
-      <div>
-      <p>Microphone: {listening ? 'on' : 'off'}</p>
-      <button onClick={SpeechRecognition.startListening}>Start</button>
-      <button onClick={resetTranscript}>Reset</button>
-      <p>{transcript}</p>
-    </div>
-      
-    </div>
-  );
+        return (
+            <div>   
+             <Webcam audio ={false} ref='webcam'/> // add the reference
+             <button onClick={this.screenshot.bind(this)}>Capture</button>
+             { this.state.screenshot ? <img src={this.state.screenshot} /> : null }
+            </div>
+            )
+    }
 }
-
-export default App;

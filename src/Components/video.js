@@ -4,68 +4,15 @@ import "@tensorflow/tfjs";
 import { useSpeechSynthesis } from 'react-speech-kit';
 import {useEffect} from "react";
 import "./styles.css";
-
+const {speak} = useSpeechSynthesis;
 
 
 const Video = () =>{
     
-  const {speak} = useSpeechSynthesis();
-    const videoRef = React.createRef();
-    const canvasRef = React.createRef();
-    
-    useEffect(() => {
-
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const webCamPromise = navigator.mediaDevices
-            .getUserMedia({
-              audio: false,
-              video: {
-                facingMode: "user"
-              }
-            })
-            .then(stream => {
-              window.stream = stream;
-              videoRef.current.srcObject = stream;
-              return new Promise((resolve, reject) => {
-                // speak({text : "Welcome to the detection system"});
-                videoRef.current.onloadedmetadata = () => {
-                  resolve();
-                };
-              });
-            });
-          const modelPromise = cocoSsd.load();
-          Promise.all([modelPromise, webCamPromise])
-            .then(values => {
-              detectFrame(videoRef.current, values[0]);
-            })
-            .catch(error => {
-              console.error(error);
-            });
-        }
-      }, []);
-    
-
-    const detectFrame = (video, model) => {
-        model.detect(video).then(predictions => {
-
-            setTimeout(() => {
-                renderPredictions(predictions);
-
-            requestAnimationFrame(() => {
-                detectFrame(video, model);
-            });
-        },3000);
-    });
-    };
-   
-    
-    
-    
-
-    
-    
-    
-   const renderPredictions = predictions => {
+  const videoRef = React.createRef();
+      const canvasRef = React.createRef();
+       
+      const renderPredictions = predictions => {
         const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         // Font options.
@@ -101,6 +48,59 @@ const Video = () =>{
         
         
     };
+    
+    useEffect(() => {
+      
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const webCamPromise = navigator.mediaDevices
+            .getUserMedia({
+              audio: false,
+              video: {
+                facingMode: "back"
+              }
+            })
+            .then(stream => {
+              window.stream = stream;
+              videoRef.current.srcObject = stream;
+              return new Promise((resolve, reject) => {
+                // speak({text : "Welcome to the detection system"});
+                videoRef.current.onloadedmetadata = () => {
+                  resolve();
+                };
+              });
+            });
+          const modelPromise = cocoSsd.load();
+          Promise.all([modelPromise, webCamPromise])
+            .then(values => {
+              detectFrame(videoRef.current, values[0]);
+            })
+            .catch(error => {
+              console.error(error);
+            });
+        }
+      }, []);
+    
+
+    const detectFrame = (video, model) => {
+        model.detect(video).then(predictions => {
+
+            setTimeout(() => {
+                renderPredictions(predictions);
+
+            requestAnimationFrame(() => {
+                detectFrame(video, model);
+            });
+        },1000);
+    });
+    };
+   
+    
+    
+    
+
+    
+    
+
 
    
         return (
